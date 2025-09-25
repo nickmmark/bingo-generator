@@ -11,6 +11,7 @@ Uses a list of words provided by the user to populate a 5x5 bingo board
 
 
 ### Demo
-For example you can mock people who believe that ivermectin cures cancer using this board:
+Try it out [here](https://nickmmark.github.io/bingo-generator/)
 
+For example you can mock people who believe that ivermectin cures cancer using this board:
 ![](https://github.com/nickmmark/bingo-generator/blob/main/bingo_generator_demo.gif)
