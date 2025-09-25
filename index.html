@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Board Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        .bingo-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-auto-rows: 100px; /* Lock square dimensions */
+            gap: 5px;
+            width: 500px; /* Ensure board is a fixed size */
+            height: 500px; /* Ensure board is a fixed size */
+            margin: 20px auto;
+            background: white;
+        }
+        .bingo-cell {
+            border: 1px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            text-align: center;
+            background-color: #f9f9f9;
+            overflow-wrap: break-word;
+            cursor: pointer;
+        }
+        .bingo-cell.free {
+            background-color: #d1ffd1;
+        }
+        .bingo-cell.selected {
+            background-color: green;
+            color: white;
+        }
+        .controls {
+            margin: 10px 0;
+        }
+        .controls button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .controls button:first-child {
+            background-color: blue;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bingo Board Generator</h1>
+    <label for="word-list">Enter words or phrases (comma separated):</label><br>
+    <textarea id="word-list" rows="8" cols="50" placeholder="e.g., Word1, Word2, Word3..."></textarea><br><br>
+
+    <label for="free-square">Center square is a free square:</label>
+    <input type="checkbox" id="free-square"><br><br>
+
+    <div class="controls">
+        <button onclick="generateBingoBoard()">Create board</button>
+        <button onclick="saveAsPNG()">Save image</button>
+        <button onclick="window.print()">Print</button>
+    </div>
+
+    <div id="bingo-board" class="bingo-board"></div>
+
+    <script>
+        function generateBingoBoard() {
+            const wordListInput = document.getElementById('word-list').value;
+            const words = wordListInput.split(',').map(word => word.trim()).filter(word => word !== '');
+            const freeSquare = document.getElementById('free-square').checked;
+            const boardSize = 5;
+
+            if (words.length === 0) {
+                alert('Please provide at least one word!');
+                return;
+            }
+
+            const shuffledWords = shuffleArray(words);
+            const bingoBoard = [];
+
+            let wordIndex = 0;
+            for (let i = 0; i < boardSize; i++) {
+                bingoBoard[i] = [];
+                for (let j = 0; j < boardSize; j++) {
+                    if (freeSquare && i === 2 && j === 2) {
+                        bingoBoard[i][j] = 'FREE';
+                    } else {
+                        bingoBoard[i][j] = shuffledWords[wordIndex];
+                        wordIndex++;
+                        if (wordIndex >= shuffledWords.length) {
+                            wordIndex = 0; // Allow reuse of words if not enough are provided.
+                        }
+                    }
+                }
+            }
+
+            renderBingoBoard(bingoBoard);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function renderBingoBoard(board) {
+            const boardContainer = document.getElementById('bingo-board');
+            boardContainer.innerHTML = '';
+
+            board.forEach(row => {
+                row.forEach(cell => {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.className = 'bingo-cell';
+                    if (cell === 'FREE') {
+                        cellDiv.classList.add('free');
+                    }
+                    cellDiv.textContent = cell;
+
+                    // Adjust font size based on text length
+                    if (cell.length > 10) {
+                        cellDiv.style.fontSize = '14px';
+                    }
+                    if (cell.length > 20) {
+                        cellDiv.style.fontSize = '12px';
+                    }
+                    if (cell.length > 30) {
+                        cellDiv.style.fontSize = '10px';
+                    }
+
+                    // Add click event to toggle selection
+                    cellDiv.addEventListener('click', () => {
+                        cellDiv.classList.toggle('selected');
+                    });
+
+                    boardContainer.appendChild(cellDiv);
+                });
+            });
+        }
+
+        function saveAsPNG() {
+            const boardContainer = document.getElementById('bingo-board');
+            html2canvas(boardContainer, {
+                scale: 2,
+                backgroundColor: null, // Keep transparent background
+                x: -5, // Add padding on the left
+                y: -5, // Add padding on the top
+                width: boardContainer.offsetWidth + 10, // Add padding to width
+                height: boardContainer.offsetHeight + 10 // Add padding to height
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'bingo-board.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        // Dynamically load the html2canvas library for saving as PNG
+        (function loadHtml2Canvas() {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+            script.onload = () => console.log('html2canvas library loaded.');
+            document.body.appendChild(script);
+        })();
+    </script>
+</body>
+</html>
